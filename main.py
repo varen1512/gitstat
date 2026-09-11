@@ -15,7 +15,7 @@ for repo in repos:
     "forks": repo["forks_count"],
     "language": repo["language"],
     "url": repo["html_url"],
-    "commit_count": len("commits"),
+    "commit_count": len(commits),
     "languages":languages
     }
     all_data.append(repo_data)

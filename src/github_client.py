@@ -2,6 +2,12 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="%(asctime)s - %(levelname)s - %(message)s"
+# )
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +45,29 @@ class GitHubClient:
             f"https://api.github.com/repos/"
             f"{self.username}/{repo_name}/commits"
         )
+        
         logger.info(f"Fetching commits for repo: {repo_name}")
-
-        response = requests.get(
-            url,
-            headers=self.headers
-        )
-        response.raise_for_status()
-
-        commits = response.json()
-        logger.info(f"Fetched {len(commits)} commits for {repo_name}")
-        return commits
+        all_commits=[]
+        page=1
+        while True:
+            response = requests.get(
+                url,
+                headers=self.headers,
+                params={
+                    "per_page":100,
+                    "page":page
+                    }
+                )
+            response.raise_for_status()
+            commits = response.json()
+            if not commits:
+                logger.info(f"No more commits found for {repo_name} on page {page}")
+                break
+            all_commits.extend(commits)
+            page+=1
+        logger.info(f"Fetched {len(all_commits)} commits for {repo_name}")
+        return all_commits
+        
 
     def get_languages(self, repo_name):
         url = (

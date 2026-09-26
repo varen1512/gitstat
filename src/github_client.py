@@ -14,11 +14,14 @@ logger = logging.getLogger(__name__)
 
 class GitHubClient:
 
-    def __init__(self):
+    def __init__(self, username=None):
         load_dotenv()
 
         self.token = os.getenv("GITHUB_TOKEN")
-        self.username = os.getenv("GITHUB_USERNAME")
+        if username:
+            self.username = username
+        else:  
+            self.username = os.getenv("GITHUB_USERNAME")
         logger.debug(f"Username: {self.username}")
         logger.debug(f"Token exists: {self.token is not None}")
         self.headers = {

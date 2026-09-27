@@ -3,23 +3,23 @@ import pandas as pd
 from fastapi import FastAPI
 app=FastAPI()
 
-def build_stats():
-        client = GitHubClient()
+def build_stats(username=None):
+        client = GitHubClient(username)
 
         repos = client.get_repos()
         all_data=[]
         for repo in repos:
             repo_name = repo["name"]
-            commits=client.get_commits(repo_name)
-            languages=client.get_languages(repo_name)
+            # commits=client.get_commits(repo_name)
+            # languages=client.get_languages(repo_name)
             repo_data = {
             "name": repo_name,
             "stars": repo["stargazers_count"],
             "forks": repo["forks_count"],
             "language": repo["language"],
             "url": repo["html_url"],
-            "commit_count": len(commits),
-            "languages":languages
+            # "commit_count": len(commits),
+            # "languages":languages
             }
             all_data.append(repo_data)
 
@@ -35,10 +35,39 @@ def get_stats():
 
     return {
         "total_repositories": len(df),
-        "total_commits": int(df["commit_count"].sum()),
-        "average_commits_per_repository": float(
-            df["commit_count"].mean()
-        )
+        #"total_commits": int(df["commit_count"].sum()),
+        "total_stars": int(df["stars"].sum()),
+        "total_forks": int(df["forks"].sum())
+        # "average_commits_per_repository": float(
+        #     df["commit_count"].mean()
+        # )
+    }
+@app.get("/stats/{username}")
+def get_user_stats(username:str):
+    df = build_stats(username)
+    language_counts = df["language"].dropna().value_counts()
+    language_distribution = language_counts.to_dict()
+    top_language = (
+    language_counts.index[0]
+    if not language_counts.empty
+    else None
+)
+    most_starred = df.loc[df["stars"].idxmax()]
+    most_forked = df.loc[df["forks"].idxmax()]
+    return {
+         "username": username,
+        "total_repositories": len(df),
+        "total_stars": int(df["stars"].sum()),
+        "total_forks": int(df["forks"].sum()),
+        "language_distribution": language_distribution,
+        "top_language": top_language,
+        "most_starred_repository": most_starred.to_dict(),
+        "most_forked_repository": most_forked.to_dict()
+        
+        # "total_commits": int(df["commit_count"].sum()),
+        # "average_commits_per_repository": float(
+        #     df["commit_count"].mean()
+        # )
     }
 
 

@@ -2,10 +2,10 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format="%(asctime)s - %(levelname)s - %(message)s"
-# )
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 
@@ -53,6 +53,7 @@ class GitHubClient:
         all_commits=[]
         page=1
         while True:
+            logger.info(f"Fetching {repo_name} - page {page}")
             response = requests.get(
                 url,
                 headers=self.headers,

@@ -19,13 +19,17 @@ def test_stats():
         "name": "repo-one",
         "stars": 5,
         "forks": 2,
-        "language": "Python"
+        "language": "Python",
+        "repo_commits_52w": 30,
+        "owner_commits_52w": 25
     },
     {
         "name": "repo-two",
         "stars": 10,
         "forks": 3,
-        "language": "C++"
+        "language": "C++",
+        "repo_commits_52w": 50,
+        "owner_commits_52w": 40
     }
 ])
 
@@ -45,13 +49,18 @@ def test_user_stats():
             "name": "repo-one",
             "stars": 5,
             "forks": 2,
-            "language": "Python"
+            "language": "Python",
+            "repo_commits_52w": 30,
+            "owner_commits_52w": 25
         },
         {
             "name": "repo-two",
             "stars": 10,
             "forks": 3,
-            "language": "C++"
+            "language": "C++",
+            "repo_commits_52w": 50,
+            "owner_commits_52w": 40
+
         }
     ])
     
@@ -66,5 +75,14 @@ def test_user_stats():
     assert data["total_repositories"] == 2
     assert data["total_stars"] == 15
     assert data["total_forks"] == 5
+    assert data["repo_commits_last_52_weeks"] == 80
+    assert data["owner_commits_last_52_weeks"] == 65
+
+    assert data["top_language"] == "Python"
+
+    assert data["language_distribution"] == {
+        "Python": 1,
+        "C++": 1
+    }
 
     mock_build.assert_called_once_with("octocat")

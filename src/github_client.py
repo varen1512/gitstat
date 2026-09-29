@@ -13,7 +13,22 @@ logger = logging.getLogger(__name__)
 
 
 class GitHubClient:
-
+    def get_commit_stats(self, repo_name):
+        url = (
+            f"https://api.github.com/repos/"
+            f"{self.username}/{repo_name}/stats/participation"
+            )
+        logger.info(f"Fetching commit stats for repo: {repo_name}")
+        response = requests.get(
+            url,
+            headers=self.headers
+            )
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "repo_commits": sum(data["all"]),
+            "author_commits": sum(data["owner"])
+            }
     def __init__(self, username=None):
         load_dotenv()
 

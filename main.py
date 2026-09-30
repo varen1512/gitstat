@@ -3,7 +3,9 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 app=FastAPI()
 import requests
-
+from datetime import datetime, timedelta
+from src.database import get_cached_stats, save_cached_stats
+CACHE_TTL = timedelta(minutes=10)
 def build_stats(username=None):
         client = GitHubClient(username)
         repos = client.get_repos()
@@ -13,7 +15,6 @@ def build_stats(username=None):
                   continue
             repo_name = repo["name"]
             commit_stats = client.get_commit_stats(repo_name)
-            commit_stats=client.get_commit_stats(repo_name)
             # commits=client.get_commits(repo_name)
             # languages=client.get_languages(repo_name)
             repo_data = {
@@ -52,6 +53,12 @@ def get_stats():
     }
 @app.get("/stats/{username}")
 def get_user_stats(username:str):
+    cached = get_cached_stats(username)
+    if cached:
+        stats, updated_at = cached
+        if datetime.now() - updated_at < CACHE_TTL:
+                  print("Cache meow") 
+                  return stats
     try:
         df = build_stats(username)
 
@@ -85,7 +92,7 @@ def get_user_stats(username:str):
 )
     most_starred = df.loc[df["stars"].idxmax()]
     most_forked = df.loc[df["forks"].idxmax()]
-    return {
+    result= {
         "username": username,
         "total_repositories": len(df),
         "total_stars": int(df["stars"].sum()),
@@ -102,6 +109,8 @@ def get_user_stats(username:str):
         #     df["commit_count"].mean()
         # )
     }
+    save_cached_stats(username, result)
+    return result
 
 
 

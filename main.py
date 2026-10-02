@@ -5,8 +5,9 @@ app=FastAPI()
 import requests
 from datetime import datetime, timedelta
 from src.database import get_cached_stats, save_cached_stats
+from src.model import UserStats
 CACHE_TTL = timedelta(minutes=10)
-def build_stats(username=None):
+def build_stats(username=None,response_model=UserStats):
         client = GitHubClient(username)
         repos = client.get_repos()
         all_data=[]
@@ -78,6 +79,8 @@ def get_user_stats(username:str):
                 "total_repositories": 0,
                 "total_stars": 0,
                 "total_forks": 0,
+                "repo_commits_last_52_weeks": 0,
+                "owner_commits_last_52_weeks": 0,
                 "top_language": None,
                 "language_distribution": {},
                 "most_starred_repository": None,

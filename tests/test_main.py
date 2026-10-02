@@ -64,8 +64,11 @@ def test_user_stats():
         }
     ])
     
-    with patch("main.build_stats", return_value=fake_data) as mock_build:
+    with patch("main.get_cached_stats", return_value=None), \
+        patch("main.save_cached_stats"), \
+        patch("main.build_stats", return_value=fake_data) as mock_build:
         response = client.get("/stats/octocat")
+        
 
     assert response.status_code == 200
 

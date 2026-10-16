@@ -3,7 +3,8 @@ from main import app
 import pandas as pd
 from unittest.mock import patch
 client = TestClient(app)
-
+from datetime import datetime
+from unittest.mock import patch
 
 def test_root():
     response = client.get("/")
@@ -89,3 +90,30 @@ def test_user_stats():
     }
 
     mock_build.assert_called_once_with("octocat")
+def test_cache_hit():
+    cached_stats = {
+        "username": "octocat",
+        "total_repositories": 2,
+        "total_stars": 15,
+        "total_forks": 5,
+        "repo_commits_last_52_weeks": 80,
+        "owner_commits_last_52_weeks": 65,
+        "language_distribution": {"Python": 1, "C++": 1},
+        "top_language": "Python",
+        "most_starred_repository": {"name": "repo1", "stars": 10},
+        "most_forked_repository": {"name": "repo2", "forks": 3},
+    }
+
+    with patch(
+        "main.get_cached_stats",
+        return_value=(cached_stats, datetime.now())
+    ), patch("main.build_stats") as mock_build, \
+       patch("main.save_cached_stats") as mock_save:
+
+        response = client.get("/stats/octocat")
+
+    assert response.status_code == 200
+    assert response.json() == cached_stats
+
+    mock_build.assert_not_called()
+    mock_save.assert_not_called()

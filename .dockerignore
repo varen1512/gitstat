@@ -1,0 +1,46 @@
+# Git
+.git/
+.gitignore
+.github/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.my_venv/
+.venv/
+venv/
+env/
+
+# Python cache and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend (deployed separately on Vercel)
+frontend/
+
+# Tests and documentation
+tests/
+docs/
+
+# IDE and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Docker Compose local overrides
+compose.override.yaml
+docker-compose.override.yml

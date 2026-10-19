@@ -3,10 +3,10 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 app=FastAPI()
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.database import get_cached_stats, save_cached_stats
 from src.model import UserStats
-CACHE_TTL = timedelta(minutes=10)
+CACHE_TTL = timedelta(minutes=2)
 def build_stats(username=None,response_model=UserStats):
         client = GitHubClient(username)
         repos = client.get_repos()
@@ -57,7 +57,7 @@ def get_user_stats(username:str):
     cached = get_cached_stats(username)
     if cached:
         stats, updated_at = cached
-        if datetime.now() - updated_at < CACHE_TTL:
+        if datetime.now(timezone.utc) - updated_at < CACHE_TTL:
                   print("Cache meow") 
                   return stats
     try:

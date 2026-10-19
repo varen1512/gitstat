@@ -114,13 +114,14 @@ function RepositoryCard({ title, repo, type, username }) {
 }
 
 export default function App() {
-  const [input, setInput] = useState("varen1512");
-  const [username, setUsername] = useState("varen1512");
+  const [input, setInput] = useState("");
+  const [username, setUsername] = useState("");
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!username) return;
     const controller = new AbortController();
 
     async function loadStats() {

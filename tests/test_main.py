@@ -3,7 +3,7 @@ from main import app
 import pandas as pd
 from unittest.mock import patch
 client = TestClient(app)
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 def test_root():
@@ -106,7 +106,7 @@ def test_cache_hit():
 
     with patch(
         "main.get_cached_stats",
-        return_value=(cached_stats, datetime.now())
+        return_value=(cached_stats, datetime.now(timezone.utc))
     ), patch("main.build_stats") as mock_build, \
        patch("main.save_cached_stats") as mock_save:
 

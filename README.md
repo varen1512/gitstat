@@ -1,29 +1,30 @@
-# GitStat
+# GitStat — GitHub Repository Analytics
 
-GitStat is a Python-based GitHub analytics project that collects repository data using the GitHub REST API and exposes basic statistics through a FastAPI backend.
-
-The project currently fetches live repository, commit, and language data from GitHub, processes it using Pandas, and provides summary statistics through an API endpoint.
+GitStat is a GitHub analytics application that turns repository and contribution data into useful statistics. It uses the GitHub REST API to collect repository information, FastAPI to serve analytics, PostgreSQL to cache results, and React to provide a dashboard.
 
 ## Features
 
-- Fetch repositories from the GitHub API
-- Fetch commit history with pagination
-- Fetch programming language data for repositories
-- Process repository data using Pandas
-- Calculate basic GitHub statistics
-- Expose statistics through a FastAPI REST API
-- Automated API tests using Pytest
-- Mock external data during testing to avoid unnecessary GitHub API requests
+- **Repository analytics** — View repository count, stars, and forks.
+- **Language insights** — Explore programming language distribution and identify your top language.
+- **Repository highlights** — Find your most-starred and most-forked repositories.
+- **Commit analytics** — Track repository commits and owner contributions over the last 52 weeks.
+- **REST API** — Retrieve analytics for a GitHub user through a FastAPI endpoint.
+- **Database caching** — Store computed statistics in PostgreSQL to reduce repeated GitHub API requests.
+- **Interactive dashboard** — Visualize analytics through a React frontend.
+- **Automated tests** — Validate backend functionality with pytest.
+- **Docker support** — Run the backend in a container.
 
 ## Tech Stack
 
-- Python
-- FastAPI
-- Pandas
-- Requests
-- Pytest
-- GitHub REST API
-- python-dotenv
+| Component | Technology |
+|---|---|
+| Backend | Python, FastAPI |
+| Data processing | Pandas |
+| Data source | GitHub REST API |
+| Database and caching | PostgreSQL, JSONB |
+| Frontend | React, JavaScript |
+| Testing | pytest |
+| Containerization | Docker |
 
 ## Project Structure
 
@@ -31,18 +32,29 @@ The project currently fetches live repository, commit, and language data from Gi
 gitstat/
 ├── src/
 │   ├── __init__.py
+│   ├── database.py
 │   ├── github_client.py
-│   └── models.py
+│   └── model.py
 ├── tests/
 │   └── test_main.py
+├── frontend/
 ├── data/
 ├── main.py
-├── requirements.txt
+├── Dockerfile
+├── .dockerignore
 ├── .gitignore
+├── requirements.txt
 └── README.md
 ```
 
-## Setup
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10 or later
+- PostgreSQL
+- Node.js and npm for the frontend
+- A GitHub personal access token
 
 ### 1. Clone the repository
 
@@ -51,109 +63,131 @@ git clone https://github.com/varen1512/gitstat.git
 cd gitstat
 ```
 
-### 2. Create a virtual environment
+### 2. Set up the Python environment
 
 ```bash
 python3 -m venv .my_venv
-```
-
-Activate it on macOS/Linux:
-
-```bash
 source .my_venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+### 3. Configure environment variables
 
 Create a `.env` file in the project root:
 
 ```env
 GITHUB_TOKEN=your_github_token
-GITHUB_USERNAME=your_github_username
+DATABASE_URL=postgresql://username:password@localhost:5432/gitstat_db
 ```
 
-The `.env` file is ignored by Git and should never be committed to the repository.
+Replace the example values with your own credentials and PostgreSQL connection details. Never commit your `.env` file or expose your GitHub token.
 
-## Running the API
+### 4. Set up PostgreSQL
 
-Start the FastAPI development server:
+Create a PostgreSQL database named `gitstat_db` and configure the connection string in `.env`.
+
+Ensure the `stats_cache` table exists with the schema expected by `src/database.py` before running the application.
+
+### 5. Run the backend
 
 ```bash
 uvicorn main:app --reload
 ```
 
-If port `8000` is already in use:
+The API should now be available at:
+
+- API root: `http://127.0.0.1:8000/`
+- Interactive API documentation: `http://127.0.0.1:8000/docs`
+
+## API Usage
+
+### Get analytics for a GitHub user
+
+```http
+GET /stats/{username}
+```
+
+Example:
+
+```http
+GET /stats/varen1512
+```
+
+The response includes analytics such as:
+
+- Total repositories
+- Total stars and forks
+- Language distribution and top language
+- Most-starred and most-forked repositories
+- Repository commits over the last 52 weeks
+- Owner contributions over the last 52 weeks
+
+The exact response fields depend on the current API implementation.
+
+## Database Caching
+
+GitStat uses PostgreSQL to store computed statistics for GitHub users. Cached results can reduce repeated API calls and improve response times.
+
+The cache uses a time-to-live (TTL) policy. Once a cached entry expires, the application can refresh the statistics from GitHub and save the updated results.
+
+## Frontend
+
+The React dashboard is located in the `frontend/` directory.
+
+To run it locally:
 
 ```bash
-uvicorn main:app --reload --port 8001
+cd frontend
+npm install
+npm run dev
 ```
 
-FastAPI's interactive API documentation is available at:
+Make sure the backend is running and that the frontend is configured to call the correct API URL.
 
-```text
-http://127.0.0.1:8000/docs
-```
+## Run Tests
 
-Use port `8001` instead if the server was started on port 8001.
-
-## API Endpoints
-
-### `GET /`
-
-Checks whether the API is running.
-
-Example response:
-
-```json
-{
-  "message": "GitStat API is running"
-}
-```
-
-### `GET /stats`
-
-Fetches live GitHub data and returns basic statistics for the configured GitHub account.
-
-Example response:
-
-```json
-{
-  "total_repositories": 10,
-  "total_commits": 150,
-  "average_commits_per_repository": 15.0
-}
-```
-
-Actual values depend on the GitHub account configured in `.env`.
-
-## Running Tests
-
-Run the test suite using:
+From the project root, activate your Python environment and run:
 
 ```bash
-python -m pytest -vv
+pytest -v
 ```
 
-The current tests verify:
+## Run with Docker
 
-- The root API endpoint responds correctly
-- The `/stats` endpoint calculates statistics correctly
-- GitHub-dependent statistics can be tested using mocked data instead of making live API requests
+Build the backend image from the project root:
 
-## Current Status
+```bash
+docker build -t gitstat-backend .
+```
 
-GitStat currently provides a working FastAPI backend around the GitHub statistics pipeline with automated API tests.
+Run the container:
 
-Future development can extend the project with additional analytics, support for arbitrary GitHub usernames, persistent storage, visualization, and deployment.
+```bash
+docker run --rm \
+  --name gitstat-api \
+  -p 8000:8000 \
+  --env-file .env \
+  -e DATABASE_URL="postgresql://username:password@host.docker.internal:5432/gitstat_db" \
+  gitstat-backend
+```
+
+Replace the database username and password with your own. On Docker Desktop for macOS, `host.docker.internal` allows the container to reach a PostgreSQL instance running on the host machine. Ensure PostgreSQL is running and the cache table has been created.
+
+## Future Improvements
+
+- Deploy the API and dashboard publicly.
+- Improve cache invalidation and database initialization.
+- Add more repository and contribution visualizations.
+- Improve error handling and API rate-limit management.
+- Add continuous integration and automated deployment.
 
 ## Author
 
 **Varen Kumar**
 
-GitHub: `varen1512`
+- GitHub: [@varen1512](https://github.com/varen1512)
+- LinkedIn: [Varen Kumar](https://www.linkedin.com/in/varen-kumar-09a56422a/)
+
+---
+
+Built to explore GitHub data through practical backend development, data processing, database caching, and frontend visualization.
